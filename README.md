@@ -2,7 +2,7 @@
 **Solutions Engineer & Technical Operations Specialist**  
 API Integrations • Workflow Automation • POS & Logistics Systems • SaaS Implementation
 
-This portfolio showcases the real production systems I architected and automated across a multi-platform cannabis delivery operation. My work spans API orchestration, webhook design, data extraction pipelines, automation scripting, reverse-engineering system limitations, and building reliable end-to-end workflows across POS, logistics, eCommerce, CRM/loyalty, and payment systems.
+This portfolio showcases the real production systems I architected and automated across a multi-platform delivery operation. My work spans API orchestration, webhook design, data extraction pipelines, automation scripting, reverse-engineering system limitations, and building reliable end-to-end workflows across POS, logistics, eCommerce, CRM/loyalty, and payment systems.
 
 I have spent the last decade building operationally critical systems for fast-paced environments. Many of these projects replaced fully manual processes and became the backbone of day-to-day operations—supporting 900+ SKUs, 50+ daily orders, $60K+ monthly revenue, and multiple dispatchers/drivers.
 
