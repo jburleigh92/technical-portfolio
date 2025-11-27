@@ -1,15 +1,15 @@
 # PostPay Automation (Case Study)
-🔗 **Repo:** https://githubgithub.com/jburleigh92/PostPay/tree/main/PostPay4
+**Repo:** https://githubgithub.com/jburleigh92/PostPay/tree/main/PostPay4
 
 ---
 
-## 📌 Summary
+## Summary
 PostPay is an automated payment-verification and dispatch workflow system built to support Baked Budz, a cannabis delivery business processing 70–100+ orders per day.  
 It replaces manual payment checking across Zelle, Venmo, Cash App, Apple Pay, and text confirmations with a real-time, error-free, fully automated pipeline.
 
 ---
 
-## 🧨 The Problem
+## The Problem
 Before PostPay, the dispatch workflow was slow, inconsistent, and vulnerable to human error:
 
 - Payments had to be checked manually across multiple apps  
@@ -23,7 +23,7 @@ These issues reduced efficiency, increased labor needs, and introduced financial
 
 ---
 
-## 🚀 The Solution
+## The Solution
 PostPay automates the entire payment verification and dispatching process:
 
 - Normalizes transactions from Zelle, Venmo, Cash App, Apple Pay, and “Other” payment types  
@@ -38,7 +38,7 @@ PostPay transformed a manual multi-step workflow into a fast, scalable, automate
 
 ---
 
-## 📉 Impact (Real-World Results)
+## Impact (Real-World Results)
 - Reduced verification time from **30–45 minutes → under 10 seconds**  
 - Eliminated all “payment mismatch” dispatching errors  
 - Enabled operational growth from ~30 → **70–100+ orders per day** without extra staff  
@@ -48,7 +48,7 @@ PostPay transformed a manual multi-step workflow into a fast, scalable, automate
 
 ---
 
-## 🏗️ High-Level Architecture
+## High-Level Architecture
 > *(Diagram should live in `/architecture/postpay-flow.png` or `/architecture/system-architecture.png`)*
 
 **System Flow:**
@@ -63,7 +63,7 @@ PostPay transformed a manual multi-step workflow into a fast, scalable, automate
 This modular architecture allows PostPay to scale and support new payment methods easily.
 
 ---
-🧠 Key Learnings
+Key Learnings
 
 Designed a modular parser system resilient to inconsistent real-world payment data
 
@@ -75,7 +75,7 @@ Enhanced operational visibility with logging, auditing, and tracing tools
 
 Delivered a system that directly supports real, daily business operations
 
-🔗 Repository
+Repository
 
 Full source code and developer documentation:
 https://githubgithub.com/jburleigh92/PostPay/tree/main/PostPay4
