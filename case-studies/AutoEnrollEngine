@@ -1,90 +1,217 @@
 # AutoEnrollEngine (Case Study)  
 **Repo:** https://github.com/jburleigh92/AutoEnrollEngine
 
----
+Real-Time Verified Order Enrollment, Profile Sync, and Notification System
 
-## Summary  
-AutoEnrollEngine is an automated tracking-analysis and ETA-normalization engine designed to convert real-time delivery tracking pages into actionable, structured data.  
-It provides a webhook interface that receives tracking URLs, performs dynamic webpage scraping using Selenium and headless Chrome, extracts live ETA values, normalizes them into meaningful delivery windows, and returns machine-readable results for downstream automations.
+## Overview
+AutoEnrollEngine was a fully automated, multi-system workflow that connected Tookan, Blaze POS, Alpine IQ, and a custom webhook listener to trigger loyalty enrollment and customer notifications at the precise moment a customer was verified by a driver. This system replaced Alpine’s manual, UI-based enrollment flow and removed the need for dispatcher involvement, enabling fully automated real-time loyalty onboarding and customer messaging.
 
-The system enables any logistics, delivery, or dispatching workflow to access reliable ETA data programmatically—without human checking or manual page monitoring.
+This project unified two major subsystems:
+1. **WhListen** — a Flask-based webhook listener integrated with Tookan events (including Selenium-based ETA extraction).
+2. **Alpine Enrollment Engine** — an API-driven workflow that auto-created customer profiles, synced SMS opt-in status, applied loyalty points, and sent transactional SMS messages directly through Alpine IQ’s API.
 
----
-
-## The Problem  
-Many delivery operations rely on third-party tracking portals that expose ETA values only through dynamic web interfaces.  
-This creates several challenges:
-
-- ETAs require **manual checking** by staff.  
-- Tracking pages often load content dynamically with JavaScript.  
-- No stable API exists for capturing real-time ETA values.  
-- Dispatch decisions are slowed when staff must repeatedly refresh tracking pages.  
-- Scaling becomes difficult when operators cannot track multiple orders efficiently.  
-
-These limitations introduce operational delays, prevent automation, and reduce the ability to handle higher delivery volumes.
+AutoEnrollEngine became a core component of the end-to-end delivery workflow and required no human intervention once deployed.
 
 ---
 
-## The Solution  
-AutoEnrollEngine creates a reliable, automated way to extract ETA information from dynamic tracking pages:
+# Problems Identified
+Before this system existed, three major limitations created operational friction:
 
-- Accepts webhook requests containing a tracking URL  
-- Launches headless Chrome via Selenium to load the page  
-- Waits for the ETA UI element to fully render  
-- Extracts the live ETA value in minutes  
-- Normalizes ETA into consistent time windows (e.g., “25–35 mins”)  
-- Returns structured JSON suitable for dispatching, routing, or messaging workflows  
+### 1. Enrollment in Alpine Required Customer Action
+Alpine IQ’s normal flow required:
+- customer clicking a link  
+- filling out opt-in forms  
+- agreeing to receive messages
 
-By converting a webpage-only ETA into structured data, the system provides the foundation for fully automated delivery workflows.
+This resulted in:
+- inconsistent enrollment
+- missed marketing value
+- friction in customer onboarding
+
+### 2. Blaze Webhooks Triggered Too Early
+Blaze fired webhooks immediately when an order was created.  
+However:
+- the customer was often **not yet verified**
+- ID or age verification could fail
+- orders could be cancelled before dispatch
+
+Using Blaze as the trigger caused premature enrollment and invalid SMS sends.
+
+### 3. Dispatchers Had to Manually Coordinate Enrollment or Notifications
+This process was slow, error-prone, and often skipped entirely during peak volume.
+
+The system required a trigger that reflected **actual verified status**, not order creation.
 
 ---
 
-## Impact  
-AutoEnrollEngine delivers operational improvements immediately:
+# Engineering Solution
 
-- Removes the need to manually check tracking pages  
-- Provides consistent and repeatable ETA extraction  
-- Integrates easily into dispatching or messaging services  
-- Enables automation of customer notifications, routing logic, and SLA tracking  
-- Reduces operator workload and speeds up decision-making  
-- Works with any tracking system that renders ETAs in the browser  
+## 1. Only Tookan’s “Verified Customer” Webhook Was Used as the Source of Truth
+Tookan’s event model updates only when the driver:
+- arrives
+- verifies the customer in person
+- confirms readiness to proceed
 
-The system is designed for production use and can be deployed in Docker for predictable, repeatable operation.
+This provides:
+- real-time accuracy
+- zero false positives
+- perfect alignment with compliance and ID verification
+
+WhListen received this webhook event and initiated the entire downstream enrollment pipeline.
 
 ---
 
-## High-Level Architecture  
+# System Architecture
 
 ```
-Webhook → Payload Validation → Selenium Scraping → ETA Extraction → ETA Normalization → JSON Response
+Tookan (Verified Event)
+        |
+        v
+WhListen (Flask Webhook Listener)
+        |
+        |-- Extract ETA (Selenium scraping)
+        |
+        v
+AutoEnrollEngine
+    • Lookup customer in Alpine
+    • Auto-create profile if missing
+    • Force-enable SMS opt-in (via PUT /optin/text/{phone}/true)
+    • Apply loyalty points
+    • Send SMS via Alpine API
+        |
+        v
+Customer receives SMS notification (Alpine API)
 ```
 
-**Flow Description**
-
-1. External system sends a POST request containing a tracking URL.  
-2. Payload is validated to prevent malformed requests.  
-3. A headless Chrome session loads the tracking page.  
-4. The scraper waits for the ETA element to appear.  
-5. Raw ETA value (minutes) is parsed from the UI.  
-6. ETA is normalized into consistent time windows.  
-7. JSON response is returned to the requesting system.
-
-This modular structure isolates each responsibility, making the system easy to extend with additional scrapers, business rules, or integrations.
+Additional attributes:
+- No customer action required
+- No dispatcher action required
+- No Blaze trigger required
+- 100% automated end-to-end
 
 ---
 
-## Key Learnings  
+# Technical Breakdown
 
-- Built a resilient scraping pipeline capable of handling dynamic, JavaScript-rendered content  
-- Developed a clean webhook processing stack with strict input validation  
-- Designed a modular Selenium architecture optimized for reuse and testing  
-- Introduced structured ETA normalization to improve consistency across multiple tracking systems  
-- Created a Docker-ready Python service suitable for production automation  
-- Demonstrated the ability to turn manual UI-based workflows into automated data pipelines  
+## WhListen: Real-Time Webhook Layer
+Built using:
+- Python
+- Flask
+- Selenium (for ETA extraction)
+- Requests (API calls)
+- Chrome WebDriver Manager
+
+Responsibilities:
+- Receive Tookan POST webhook
+- Parse driver event
+- Extract customer phone fields from payload
+- Scrape ETA from Tookan tracking link using Selenium
+- Forward structured data into the Alpine Enrollment Engine
+
+Why Selenium?  
+Tookan’s ETA was not available via stable API.  
+The tracking page required dynamic rendering, so Selenium was used for precise extraction.
 
 ---
+
+## Alpine Enrollment Engine: API-Driven Logic
+Key capabilities:
+- Check if customer exists in Alpine IQ
+- Auto-create profile if missing
+- Sync SMS opt-in via undocumented but functional endpoint:
+  ```
+  PUT /api/v2/optin/text/{phone}/true
+  ```
+- Apply loyalty points automatically
+- Trigger transactional SMS via:
+  ```
+  POST /api/v2/sms
+  ```
+- Format ETA information for delivery notifications (when provided)
+
+This workflow bypassed Alpine’s default UI flow entirely and proved reliable under real production load.
+
+---
+
+# Why This Was a Significant Engineering Achievement
+
+### 1. Multi-System, Real-Time Integration
+This system connected:
+- Tookan (logistics)
+- Blaze (POS source data)
+- Alpine IQ (loyalty & SMS)
+- Selenium scraping for dynamic data
+- Python services (Flask, requests)
+- Custom server runtime
+
+Coordinating these into a single, fully automated pipeline required:
+- API analysis
+- event modeling
+- reverse engineering
+- dependency management
+- error handling
+- data normalization
+- operational design
+
+### 2. You Identified and Fixed Alpine’s UX Limitation Using APIs
+You discovered that Alpine IQ had no built-in automation for customer creation or SMS opt-ins.  
+You overcame this by:
+- studying API documentation
+- identifying usable endpoints
+- validating behavior through trial and error
+- building a reliable enrollment pipeline anyway
+
+This is exactly the type of integration work SE teams hire for.
+
+### 3. Strategic Design: Triggering on Verification, Not Order Creation
+Choosing Tookan “Verified” as the event source, rather than Blaze’s “Order Created,” ensured:
+- no premature enrollments  
+- no false triggers  
+- every enrollment tied to a real, verified customer  
+
+This wasn’t just technical skill — it was workflow architecture.
+
+---
+
+# Tooling and Tech Stack
+
+**Languages & Frameworks**
+- Python  
+- Flask  
+- Selenium WebDriver  
+
+**APIs**
+- Tookan Webhooks  
+- Tookan Tracking Pages (scraped)  
+- Alpine IQ API (profile creation, SMS opt-in, SMS sending)
+
+**Infrastructure**
+- Local runtime / server environment  
+- Chrome WebDriver via WebDriver Manager
+
+**Data Formats**
+- JSON  
+- Dynamic HTML for ETA extraction  
+
+---
+
+# Impact
+
+- Fully automated enrollment with zero dispatcher involvement  
+- Eliminated Alpine’s manual onboarding process  
+- Created perfect alignment between real-time verification and loyalty activation  
+- Enabled automated SMS notifications with accurate ETA context  
+- Improved customer experience by sending personalized, timely updates  
+- Increased loyalty participation and data completeness  
+- Reduced operational errors from manual workflows  
+- Became a core part of the end-to-end delivery pipeline
+
+---
+
+# Summary
+AutoEnrollEngine unified event-driven workflows, API integration, reverse-engineered endpoints, and automation logic into a single real-time system that reliably enrolled customers, synced profiles, sent SMS notifications, and extracted ETAs with no human involvement. It represents one of your strongest demonstrations of solutions engineering, operational design, and multi-system automation.
+
 
 ## Repository  
 Full source code and developer documentation:  
 https://github.com/jburleigh92/AutoEnrollEngine
-
