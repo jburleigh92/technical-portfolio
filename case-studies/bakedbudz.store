@@ -1,0 +1,155 @@
+# Case Study: BakedBudz Store v1 → v2  
+**Role:** Systems Architect & Technical Operations Lead  
+**Platforms:** Blaze POS API, WooCommerce, Custom PHP Plugin, WordPress, Webhooks, Tookan/Onfleet-style dispatch systems, SMS/Loyalty platforms, ID Verification APIs
+
+---
+
+## Overview
+
+This case study documents the full lifecycle of designing, architecting, and co-developing both versions of the BakedBudz eCommerce platform — from the original Blaze-powered v1 store to the fully independent v2 rebuild.
+
+Across both versions, I was responsible for:
+- defining the system architecture  
+- mapping API behavior and webhook flows  
+- validating developer work  
+- reverse-engineering undocumented behavior  
+- ensuring operational integrity across ordering, catalog, inventory, dispatch, payments, and loyalty  
+
+The result was a fully functioning multi-system eCommerce & delivery platform capable of supporting 50+ orders/day with automated verification, dispatch routing, catalog sync, and loyalty logic.
+
+---
+
+# V1: Blaze Plugin Store (Constraints, Failures, and Architecture Limits)
+
+### What v1 was built on
+The first version of the store used:
+- Blaze’s deprecated WordPress plugin  
+- Outdated API documentation  
+- Limited hooks for intercepting checkout, shipping rules, or inventory behavior  
+- No ability to embed real-time order tracking  
+
+This plugin was no longer supported by Blaze, which resulted in:
+- errors in tax calculation  
+- broken catalog updates  
+- inconsistent cart validation  
+- incorrect inventory pulls  
+- webhook failures that the developer could not fix (Blaze wouldn’t patch them)  
+
+### My role in v1
+Even though the plugin handled core functionality, I had to:
+- read through Blaze’s legacy Store API docs  
+- test endpoint behavior manually in Postman  
+- map Blaze → WordPress → WooCommerce data flow  
+- help the overseas developer translate API behavior into actual UI/UX requirements  
+- troubleshoot inconsistencies caused by Blaze’s plugin  
+- determine which functions could be overwritten and which could not  
+
+### Key problems identified
+I diagnosed the core issues that made v1 unsustainable:
+- **No native tracking UI** (only external links)
+- **Catalog mismatches** due to Blaze’s plugin caching
+- **Inability to modify checkout logic**
+- **API rate-limit failures**
+- **Plugin bugs with no long-term support**
+
+This pushed us toward a clean-slate rebuild.
+
+---
+
+# V2: Independent WooCommerce Build (Full Custom Architecture)
+
+### Why v2 was necessary  
+After deep analysis, I proposed a redesign because:
+- relying on Blaze’s deprecated store API was a systemic risk  
+- we needed full control of checkout logic, delivery rules, loyalty flows, and customer state  
+- the business roadmap required new integrations not possible in v1  
+- we needed a platform that could scale and potentially be white-labeled  
+
+### What changed in v2
+V2 removed Blaze entirely from the eCommerce layer and instead used:
+
+- **WooCommerce as the main ordering system**
+- **Custom API middleware** pushing orders into Blaze  
+- **Independent catalog management with mapping tables**
+- **Full control of UI/UX for promotions, cart rules, inventory behavior**
+- **Built-in order tracking (similar to DoorDash/Uber)**
+- **Flexibility to integrate any dispatch system (Tookan/Onfleet)**
+
+### My responsibilities in v2
+I was responsible for the full technical architecture:
+- defined each integration requirement and data contract  
+- mapped the order lifecycle (cart → order → Blaze → dispatch → loyalty)  
+- identified system limits (inventory, discounts, taxes, delivery radius)  
+- ran API tests to validate feasibility  
+- guided developer sprints and reviewed deliverables  
+- designed fallback logic when APIs failed  
+- ensured catalog structures stayed consistent across WooCommerce and Blaze  
+- validated webhook behavior during live traffic  
+
+### Real impact
+With v2:
+- checkout failures dropped significantly  
+- catalog accuracy improved  
+- fully embedded tracking increased customer trust  
+- developer velocity improved because I translated operational needs into actual technical specs  
+- the system became independent from Blaze’s plugin limitations  
+
+---
+
+# Technical Highlights (Why This Case Study Matters for Recruiters)
+
+### 1. **Cross-platform integration design**
+This project required coordinating:
+- Blaze POS  
+- WordPress / WooCommerce  
+- Tookan/Onfleet APIs  
+- Loyalty systems  
+- SMS systems  
+- Custom PHP middleware  
+- Webhooks across 3 systems  
+
+### 2. **Reverse-engineering**
+I identified undocumented and deprecated behaviors in Blaze’s plugin by testing endpoints directly and comparing outputs to live order behavior.
+
+### 3. **Real-time operational constraints**
+I architected around:
+- delivery radius handling  
+- driver routing logic  
+- ID verification dependencies  
+- catalog taxonomy  
+- inventory sync constraints  
+
+### 4. **Developer collaboration**
+The offshore developer understood code, not operational logic.  
+My job was to:
+- translate real operational workflows into technical specs  
+- validate behavior through API testing and webhook tracing  
+- guide architecture choices based on compliance, UX, and system limits  
+
+This mirrors how solutions engineers work in real SaaS environments.
+
+### 5. **Scalability**
+The v2 redesign was intentionally built to support:
+- white-labeling  
+- multi-store expansion  
+- plug-in dispatch providers  
+- plug-in verification systems  
+- automated workflows  
+
+---
+
+# Final Outcome
+
+The combined v1 → v2 work demonstrates my ability to:
+- architect multi-platform systems  
+- work between developers and operators  
+- integrate APIs across POS, eCommerce, dispatch, loyalty, and notification systems  
+- reverse-engineer limitations and design around them  
+- ship production systems under real-world time and business pressure  
+
+This is one of the strongest case studies in my portfolio because it captures:
+- systems thinking  
+- integration engineering  
+- operational awareness  
+- API literacy  
+- cross-functional leadership  
