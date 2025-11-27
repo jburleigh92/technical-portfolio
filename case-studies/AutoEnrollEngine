@@ -4,213 +4,174 @@
 Real-Time Verified Order Enrollment, Profile Sync, and Notification System
 
 ## Overview
-AutoEnrollEngine was a fully automated, multi-system workflow that connected Tookan, Blaze POS, Alpine IQ, and a custom webhook listener to trigger loyalty enrollment and customer notifications at the precise moment a customer was verified by a driver. This system replaced Alpine’s manual, UI-based enrollment flow and removed the need for dispatcher involvement, enabling fully automated real-time loyalty onboarding and customer messaging.
+I built AutoEnrollEngine as a fully automated, multi-system workflow that connected Tookan, Blaze POS, Alpine IQ, and a custom webhook listener to trigger loyalty enrollment and customer notifications at the exact moment a customer was verified by a delivery driver. This system replaced Alpine’s manual, UI-based enrollment flow and eliminated the need for dispatcher involvement, enabling fully automated real-time loyalty onboarding and customer messaging.
 
-This project unified two major subsystems:
+The project unified two major subsystems:
 1. **WhListen** — a Flask-based webhook listener integrated with Tookan events (including Selenium-based ETA extraction).
 2. **Alpine Enrollment Engine** — an API-driven workflow that auto-created customer profiles, synced SMS opt-in status, applied loyalty points, and sent transactional SMS messages directly through Alpine IQ’s API.
 
-AutoEnrollEngine became a core component of the end-to-end delivery workflow and required no human intervention once deployed.
+Once deployed, AutoEnrollEngine operated autonomously and became a core component of the end-to-end delivery workflow.
 
 ---
 
 # Problems Identified
-Before this system existed, three major limitations created operational friction:
+Before this system existed, three major issues caused operational friction:
 
 ### 1. Enrollment in Alpine Required Customer Action
-Alpine IQ’s normal flow required:
-- customer clicking a link  
-- filling out opt-in forms  
-- agreeing to receive messages
+Alpine IQ’s normal flow required the customer to:
+- click a link  
+- fill out opt-in forms  
+- agree to receive messages  
 
-This resulted in:
-- inconsistent enrollment
-- missed marketing value
-- friction in customer onboarding
+This resulted in inconsistent enrollment, reduced marketing reach, and friction during onboarding.
 
 ### 2. Blaze Webhooks Triggered Too Early
-Blaze fired webhooks immediately when an order was created.  
-However:
-- the customer was often **not yet verified**
-- ID or age verification could fail
-- orders could be cancelled before dispatch
+Blaze fired webhooks as soon as an order was created.  
+However, at that point:
+- the customer was often **not verified**
+- ID or age verification might fail
+- orders could be cancelled before dispatch  
 
 Using Blaze as the trigger caused premature enrollment and invalid SMS sends.
 
-### 3. Dispatchers Had to Manually Coordinate Enrollment or Notifications
-This process was slow, error-prone, and often skipped entirely during peak volume.
-
-The system required a trigger that reflected **actual verified status**, not order creation.
+### 3. Dispatchers Had to Manually Coordinate Enrollment and Notifications
+During peak volume, these steps were error-prone, slow, and often skipped entirely.  
+The workflow needed a more accurate, reliable trigger.
 
 ---
 
 # Engineering Solution
 
-## 1. Only Tookan’s “Verified Customer” Webhook Was Used as the Source of Truth
-Tookan’s event model updates only when the driver:
-- arrives
-- verifies the customer in person
-- confirms readiness to proceed
+## 1. I Used Tookan’s “Verified Customer” Webhook as the Source of Truth
+Tookan updates driver events only when:
+- the driver arrives on-site  
+- verifies the customer in person  
+- confirms readiness to proceed  
 
-This provides:
-- real-time accuracy
-- zero false positives
-- perfect alignment with compliance and ID verification
+This ensured:
+- real-time accuracy  
+- zero false positives  
+- alignment with compliance and ID requirements  
 
-WhListen received this webhook event and initiated the entire downstream enrollment pipeline.
+WhListen received this webhook and initiated the entire downstream enrollment pipeline.
 
 ---
 
 # System Architecture
 
-```
 Tookan (Verified Event)
-        |
-        v
+|
+v
 WhListen (Flask Webhook Listener)
-        |
-        |-- Extract ETA (Selenium scraping)
-        |
-        v
+|
+|-- Extract ETA (Selenium scraping)
+|
+v
 AutoEnrollEngine
-    • Lookup customer in Alpine
-    • Auto-create profile if missing
-    • Force-enable SMS opt-in (via PUT /optin/text/{phone}/true)
-    • Apply loyalty points
-    • Send SMS via Alpine API
-        |
-        v
+• Lookup customer in Alpine
+• Auto-create profile if missing
+• Force-enable SMS opt-in (via PUT /optin/text/{phone}/true)
+• Apply loyalty points
+• Send SMS via Alpine API
+|
+v
 Customer receives SMS notification (Alpine API)
-```
 
-Additional attributes:
-- No customer action required
-- No dispatcher action required
-- No Blaze trigger required
-- 100% automated end-to-end
+---
+
+Key attributes:
+- No customer action required  
+- No dispatcher action required  
+- Webhooks tied to actual verified status, not order creation  
+- Completely automated end-to-end  
 
 ---
 
 # Technical Breakdown
 
 ## WhListen: Real-Time Webhook Layer
-Built using:
-- Python
-- Flask
-- Selenium (for ETA extraction)
-- Requests (API calls)
-- Chrome WebDriver Manager
+I built WhListen using:
+- Python  
+- Flask  
+- Selenium WebDriver (for ETA extraction)  
+- Requests (for API calls)  
+- Chrome WebDriver Manager  
 
-Responsibilities:
-- Receive Tookan POST webhook
-- Parse driver event
-- Extract customer phone fields from payload
-- Scrape ETA from Tookan tracking link using Selenium
-- Forward structured data into the Alpine Enrollment Engine
+Its responsibilities included:
+- receiving Tookan POST webhooks  
+- parsing driver events  
+- extracting customer phone numbers and metadata  
+- scraping ETA values from Tookan tracking pages  
+- forwarding structured data into the Alpine Enrollment Engine  
 
-Why Selenium?  
-Tookan’s ETA was not available via stable API.  
-The tracking page required dynamic rendering, so Selenium was used for precise extraction.
+I used Selenium because Tookan’s ETA was not available via a stable API; the tracking page required dynamic content rendering that only a headless browser could reliably parse.
 
 ---
 
-## Alpine Enrollment Engine: API-Driven Logic
-Key capabilities:
-- Check if customer exists in Alpine IQ
-- Auto-create profile if missing
-- Sync SMS opt-in via undocumented but functional endpoint:
-  ```
-  PUT /api/v2/optin/text/{phone}/true
-  ```
-- Apply loyalty points automatically
-- Trigger transactional SMS via:
-  ```
-  POST /api/v2/sms
-  ```
-- Format ETA information for delivery notifications (when provided)
+## Alpine Enrollment Engine: API-Driven Automation
+The enrollment engine performed a fully automated workflow:
 
-This workflow bypassed Alpine’s default UI flow entirely and proved reliable under real production load.
+- Checked whether the customer already existed in Alpine IQ  
+- Auto-created profiles when needed  
+- Synced SMS opt-in via an undocumented but functional endpoint:  PUT /api/v2/optin/text/{phone}/true
+- Applied loyalty points  
+- Sent transactional SMS messages through:  POST /api/v2/sms
+- Formatted ETA information for delivery notifications  
+
+By bypassing Alpine’s default UI-based enrollment flow, I built a more reliable and scalable pipeline that fit the real operational workflow.
 
 ---
 
 # Why This Was a Significant Engineering Achievement
 
-### 1. Multi-System, Real-Time Integration
-This system connected:
-- Tookan (logistics)
-- Blaze (POS source data)
-- Alpine IQ (loyalty & SMS)
-- Selenium scraping for dynamic data
-- Python services (Flask, requests)
-- Custom server runtime
+### 1. I Built a Multi-System, Real-Time Integration
+This system connected Tookan (logistics), Blaze (POS), Alpine IQ (loyalty + SMS), Selenium (dynamic data extraction), and Python services into a single automated pipeline. This required:
+- event modeling  
+- API investigation  
+- reverse engineering  
+- concurrency and timing considerations  
+- workflow coordination across multiple platforms  
 
-Coordinating these into a single, fully automated pipeline required:
-- API analysis
-- event modeling
-- reverse engineering
-- dependency management
-- error handling
-- data normalization
-- operational design
+### 2. I Overcame Alpine IQ’s UX Limitations Using Direct API Calls
+Alpine had no automated method for customer creation or SMS opt-ins.  
+I solved this by identifying and validating the correct endpoints and building a stable enrollment workflow around them.
 
-### 2. You Identified and Fixed Alpine’s UX Limitation Using APIs
-You discovered that Alpine IQ had no built-in automation for customer creation or SMS opt-ins.  
-You overcame this by:
-- studying API documentation
-- identifying usable endpoints
-- validating behavior through trial and error
-- building a reliable enrollment pipeline anyway
+### 3. I Strategically Triggered Enrollment on Customer Verification, Not Order Creation
+Triggering on Tookan’s “Verified” event provided perfect alignment with compliance requirements and eliminated premature enrollments or invalid SMS sends.
 
-This is exactly the type of integration work SE teams hire for.
-
-### 3. Strategic Design: Triggering on Verification, Not Order Creation
-Choosing Tookan “Verified” as the event source, rather than Blaze’s “Order Created,” ensured:
-- no premature enrollments  
-- no false triggers  
-- every enrollment tied to a real, verified customer  
-
-This wasn’t just technical skill — it was workflow architecture.
+This wasn’t just coding — it was workflow-level architecture.
 
 ---
 
 # Tooling and Tech Stack
+**Languages & Frameworks:**  
+Python, Flask, Selenium WebDriver  
 
-**Languages & Frameworks**
-- Python  
-- Flask  
-- Selenium WebDriver  
+**APIs:**  
+Tookan Webhooks, Tookan Tracking Pages (Selenium scraping), Alpine IQ API (profile, opt-in, SMS)
 
-**APIs**
-- Tookan Webhooks  
-- Tookan Tracking Pages (scraped)  
-- Alpine IQ API (profile creation, SMS opt-in, SMS sending)
+**Infrastructure:**  
+Local server / runtime, Chrome WebDriver Manager  
 
-**Infrastructure**
-- Local runtime / server environment  
-- Chrome WebDriver via WebDriver Manager
-
-**Data Formats**
-- JSON  
-- Dynamic HTML for ETA extraction  
+**Data Formats:**  
+JSON, dynamic HTML  
 
 ---
 
 # Impact
-
-- Fully automated enrollment with zero dispatcher involvement  
-- Eliminated Alpine’s manual onboarding process  
-- Created perfect alignment between real-time verification and loyalty activation  
-- Enabled automated SMS notifications with accurate ETA context  
-- Improved customer experience by sending personalized, timely updates  
-- Increased loyalty participation and data completeness  
-- Reduced operational errors from manual workflows  
-- Became a core part of the end-to-end delivery pipeline
+- Fully automated customer enrollment with zero dispatcher involvement  
+- Eliminated Alpine’s manual onboarding workflow  
+- Created real-time, verified-based loyalty activation  
+- Enabled accurate, personalized SMS notifications  
+- Improved customer experience and trust  
+- Increased loyalty program participation  
+- Reduced operational errors  
+- Became a core component of the business’s delivery operations  
 
 ---
 
 # Summary
-AutoEnrollEngine unified event-driven workflows, API integration, reverse-engineered endpoints, and automation logic into a single real-time system that reliably enrolled customers, synced profiles, sent SMS notifications, and extracted ETAs with no human involvement. It represents one of your strongest demonstrations of solutions engineering, operational design, and multi-system automation.
-
+I built AutoEnrollEngine to unify event-driven workflows, external APIs, and automation logic into a single real-time system that enrolled customers, synced profiles, applied opt-ins, sent SMS messages, and extracted ETAs—completely without human intervention. It represents one of my most impactful engineering solutions, combining systems design, API integration, workflow architecture, and automation.
 
 ## Repository  
 Full source code and developer documentation:  
