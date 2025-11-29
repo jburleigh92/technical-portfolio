@@ -12,7 +12,7 @@ It captures how WooCommerce, Blaze POS, dispatch, verification, payments, loyalt
                                                        ▼
                                       ┌────────────────────────────────┐
                                       │     WooCommerce (Custom v2)    │
-                                      │  - Product Catalog              │
+                                      │  - Product Catalog             │
                                       │  - Checkout & Cart Logic       │
                                       │  - Customer Profiles           │
                                       │  - Order Creation              │
@@ -22,22 +22,22 @@ It captures how WooCommerce, Blaze POS, dispatch, verification, payments, loyalt
                     ┌──────────────────────────────────────────────────────────┐
                     │                Custom Integration Layer                  │
                     │----------------------------------------------------------│
-                    │ Maps WooCommerce order → Blaze POS order schema           │
+                    │ Maps WooCommerce order → Blaze POS order schema          │
                     │ Normalizes: phone, name, items, tax, delivery window     │
                     │ Handles: retries, validation, error-handling, logging    │
                     └───────────────┬──────────────────────────────────────────┘
                                     │
                                     ▼
-               ┌────────────────────────────────┐
+               ┌────────────────────────-────────┐
                │           Blaze POS             │
                │  - Order Record of Truth        │
                │  - Compliance Fields            │
                │  - Customer Profiles            │
                │  - Inventory / SKU Mapping      │
-               └──────────────┬─────────────────┘
+               └──────────────┬─────────────-────┘
                                │ Webhooks (Order Created / Updated)
                                ▼
-         ┌──────────────────────────────────────┐
+         ┌───────────────────────────────────-───┐
          │        Customer Verification          │
          │---------------------------------------│
          │ Validates:                            │
@@ -46,7 +46,7 @@ It captures how WooCommerce, Blaze POS, dispatch, verification, payments, loyalt
          │  - Phone + name normalization         │
          │                                       │
          │ Determines whether dispatch is allowed│
-         └──────────────┬───────────────────────┘
+         └──────────────┬───────────────────-────┘
                         │ Verified Customers Only
                         ▼
            ┌────────────────────────────────┐
@@ -58,11 +58,11 @@ It captures how WooCommerce, Blaze POS, dispatch, verification, payments, loyalt
                            │ Webhooks (Driver status events)
                            ▼
        ┌─────────────────────────────────────────────┐
-       │              WhListen Service               │
+       │        AutoEnrollEngine Service             │
        │---------------------------------------------│
-       │ Flask-based webhook listener                 │
-       │ AJAX/Selenium scrapes ETA (fallback mode)    │
-       │ Routes verified events downstream            │
+       │ Flask-based webhook listener                │
+       │ AJAX/Selenium scrapes ETA (fallback mode)   │
+       │ Routes verified events downstream           │
        └───────────────┬─────────────────────────────┘
                         │
                         ▼
@@ -75,24 +75,24 @@ It captures how WooCommerce, Blaze POS, dispatch, verification, payments, loyalt
      │ Validates payment against active orders             │
      │ Updates SQLite ledger                               │
      │ Sends real-time Slack confirmation                  │
-     └───────────────────────┬────────────────────────────┘
+     └───────────────────────┬────────────────────────_────┘
                              │ Verified Payments Only
                              ▼
          ┌────────────────────────────────────────┐
-         │           Alpine IQ Loyalty API         │
-         │------------------------------------------│
-         │ Auto-enrolls customer (profile create)   │
-         │ Syncs opt-in status                      │
-         │ Issues loyalty points                    │
-         │ Triggers post-order SMS                  │
-         └──────────────────────────┬──────────────┘
+         │           Alpine IQ Loyalty API        │
+         │----------------------------------------│
+         │ Auto-enrolls customer (profile create) │
+         │ Syncs opt-in status                    │
+         │ Issues loyalty points                  │
+         │ Triggers post-order SMS                │
+         └──────────────────────────┬─────────────┘
                                     │
                                     ▼
                         ┌──────────────────────────┐
-                        │        Slack API          │
-                        │ - Payment Confirmation    │
-                        │ - Dispatch Updates        │
-                        │ - System Alerts           │
+                        │        Slack API         │
+                        │ - Payment Confirmation   │
+                        │ - Dispatch Updates       │
+                        │ - System Alerts          │
                         └──────────────────────────┘
 ```
 
@@ -101,7 +101,7 @@ It captures how WooCommerce, Blaze POS, dispatch, verification, payments, loyalt
 ## What This Diagram Demonstrates
 
 ### 1. **Multi-System Architecture**
-You integrated *seven* independent platforms into a single unified workflow:
+I integrated *seven* independent platforms into a single unified workflow:
 - WooCommerce  
 - Blaze POS  
 - Custom Integration Layer  
@@ -111,7 +111,7 @@ You integrated *seven* independent platforms into a single unified workflow:
 - Alpine IQ loyalty  
 
 ### 2. **Real-Time Event Orchestration**
-You designed the handoff logic between:
+I designed the handoff logic between:
 - Order creation  
 - Verification  
 - Dispatch  
@@ -121,22 +121,10 @@ You designed the handoff logic between:
 - Operational notification  
 
 ### 3. **Custom Microservices**
-Both **WhListen** and **PostPay** sit in the architecture as first-class services that *you built*.
+Both **AutoEnrollEngine** and **PostPay** sit in the architecture as first-class services that I built.
 
 ### 4. **API-Driven Architecture**
 Every block is connected by:
 - REST API calls  
 - Webhook triggers  
-- Custom Python-based logic  
-
-It shows **you understand systems, not just tools**.
-
----
-
-If you want, I can now generate:
-
-**A2)** Figma-level graphic diagram (PNG, SVG, or dark-mode version)  
-**A3)** A second architecture diagram specifically for **v1 vs v2 comparison**  
-**A4)** A lightweight diagram for your resume only  
-
-Just tell me which one: **A2**, **A3**, or **A4**.
+- Custom Python-based logic 
