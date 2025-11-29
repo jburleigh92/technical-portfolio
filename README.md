@@ -41,23 +41,23 @@ Every project in this portfolio is based on real production work I designed or b
 
 # Highlighted Projects
 
-## 1. AutoEnrollEngine
-Real-time customer verification, profile creation, opt-in sync, and SMS notifications triggered by Tookan driver “Verified Customer” events.
-
-**Tech:** Python, Flask, Selenium, Alpine IQ API, Tookan Webhooks  
-**Repository:** https://github.com/jburleigh92/AutoEnrollEngine     
-**Architecture:** `architecture/AutoEnrollEngine_system_diagram`  
-**Case Study:** `case-studies/AutoEnrollEngine`
-
----
-
-## 2. PostPay Automation
+## 1. PostPay Automation
 A fully automated payment-ingestion and Slack-notification engine processing Zelle, Cash App, Venmo, and Apple Pay signals in real time.
 
 **Tech:** Python, SQLite, Slack API, Gmail/IMAP  
 **Repository:** https://github.com/jburleigh92/PostPay  
 **Architecture:** `architecture/PostPay_system_diagram`   
 **Case Study:** `case-studies/PostPay`  
+
+---
+
+## 2. AutoEnrollEngine
+Real-time customer verification, profile creation, opt-in sync, and SMS notifications triggered by Tookan driver “Verified Customer” events.
+
+**Tech:** Python, Flask, Selenium, Alpine IQ API, Tookan Webhooks  
+**Repository:** https://github.com/jburleigh92/AutoEnrollEngine     
+**Architecture:** `architecture/AutoEnrollEngine_system_diagram`  
+**Case Study:** `case-studies/AutoEnrollEngine`
 
 ---
 
