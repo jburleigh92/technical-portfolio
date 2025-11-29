@@ -1,0 +1,41 @@
+                           ┌──────────────────────────-────┐
+                           │        macOS Messages DB      │
+                           │   (iMessage Zelle / Venmo     │
+                           │     notifications source)     │
+                           └───────────────┬───────────-───┘
+                                           │
+                                           │  SELECT * FROM message WHERE ...
+                                           ▼
+                              ┌──────────────────────────┐
+                              │   gmail_client.py        │
+                              │   (in v4: email service) │
+                              └──────────────┬───────────┘
+                                             │ raw text payload
+                                             ▼
+                         ┌─────────────────────────────────────────┐
+                         │               PARSERS                   │
+                         │ zelle_parser / venmo_parser / etc.      │
+                         └──────────────────┬──────────────────────┘
+                                            │  parsed dict:
+                                            │  {provider, sender, amount, ts}
+                                            ▼
+                     ┌───────────────────────────────────────────────┐
+                     │               importer.py                     │
+                     │  - dedupe (runtime + SQLite)                  │
+                     │  - persist new payments                       │
+                     └──────────────────┬────────────────────────────┘
+                                        │ INSERT INTO payments (...)
+                                        ▼
+                       ┌────────────────────────────────────┐
+                       │           SQLite Database          │
+                       │ (prevents duplicate Slack alerts)  │
+                       └──────────────────┬─────────────────┘
+                                          │ formatted message
+                                          ▼
+                         ┌─────────────────────────────────-──┐
+                         │        Slack Notification          │
+                         │ slack.py → chat.postMessage        │
+                         └──────────────────┬─────────────────┘
+                                            │
+                                            ▼
+                                      Slack Channel
