@@ -96,13 +96,11 @@ Shows product thinking, migration design, API validation, and ability to diagnos
 # Project Case Studies
 Full project narratives (problems, architecture, outcomes) are included in:
 
-``
-case-studies/ 
-│ 
-├── AutoEnrollEngine 
-├── PostPay 
-└── bakedbudz.store 
-``
+case-studies/
+│
+├── AutoEnrollEngine
+├── PostPay
+└── bakedbudz.store
 
 Each one includes:
 - before & after workflow  
